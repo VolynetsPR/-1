@@ -160,7 +160,7 @@ flex-basis:100%
 {
     border-bottom:1px solid var(--bs-border);
     padding:10px;
-    text-align:left
+    text-align:center
 }
 .table th
 {
