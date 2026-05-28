@@ -62,7 +62,7 @@ def main():
     load_regional_csv(con)
     
     con.close()
-    print('База данных создана:', DB_PATH)
+    print('Create DB:', DB_PATH)
 
 if __name__ == '__main__':
     main()
