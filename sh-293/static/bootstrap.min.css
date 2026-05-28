@@ -23,7 +23,7 @@ a
 }
 a:hover
 {
-    text-decoration:underline
+    text-decoration:none
 }
 .container
 {
@@ -54,7 +54,7 @@ a:hover
 }
 .nav-link
 {
-    color:#334155
+    color:#375533
 }
 .card
 {
@@ -110,18 +110,18 @@ flex-basis:100%
 .btn:hover
 {
     text-decoration:none;
-    background:rgba(28, 139, 164, 0.569)
+    background:rgba(0, 136, 255, 0.369)
 }
 .btn-primary,.btn-danger
 {
-    background:#2563eb;
+    background:#2629dcec;
     color:#fff;
     border-color:#ffffff
 }
 .btn-danger
 {
-    background:#dc2626;
-    border-color:#dc2626
+    background:#2629dcec;
+    border-color:#2629dc00
 }
 .btn-outline-primary.active,.btn-primary.active
 {
@@ -164,7 +164,7 @@ flex-basis:100%
 }
 .table th
 {
-    background:#f8fafc;
+    background:rgba(0, 51, 255, 0.241);
     font-weight:800
 }
 .table-responsive
