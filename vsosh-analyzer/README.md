@@ -10,19 +10,12 @@ python3 app.py
 Откройте `http://127.0.0.1:5000/`
 
 ## Важные файлы
-- `init_db.py` — полностью пересоздаёт SQLite БД из приложенных HTML/CSV файлов
+- `init_db.py` — создаёт SQLite БД из приложенных HTML/CSV файлов
 - `app.py` — главное Flask-приложение
-- `school_utils.py` — отдельный файл с функцией `get_school(full_name)`
+- `school_utils.py` — файл с функциями загрузки школ
 - `data/olympiad.sqlite3` — созданная база данных
-- `templates/standings.html` — единственный шаблон таблицы результатов; данные попадают только при рендеринге
+- `templates/standings.html` — таблица результатов
 - `static/standings2.css` — исходный стиль таблиц результатов
-
-## Проверка
-1. Остановить приложение
-2. Удалить `data/olympiad.sqlite3`
-3. Запустить `python3 init_db.py`
-4. После создания БД можно удалить исходные HTML/CSV из `uploads/`
-5. Запустить `python3 app.py`
 
 ## На текущий момент
 ### Реализовано
