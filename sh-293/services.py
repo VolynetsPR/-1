@@ -2,8 +2,8 @@ from collections import Counter, defaultdict
 from db import get_connection
 
 DIPLOMA_INVITED = 383
-WINNERS_LIMIT = int(DIPLOMA_INVITED * 0.08)  # 30
-DIPLOMAS_LIMIT = int(DIPLOMA_INVITED * 0.45) # 172
+WINNERS_LIMIT = int(DIPLOMA_INVITED * 0.08)
+DIPLOMAS_LIMIT = int(DIPLOMA_INVITED * 0.45)
 MIN_DIPLOMA_SCORE = 400
 
 SCORE_FIELDS = {1: ['p1','p2','p3','p4'], 2: ['p5','p6','p7','p8'], 3: ['p1','p2','p3','p4','p5','p6','p7','p8']}
@@ -14,8 +14,9 @@ def latest_snapshot_id(con, tour):
     return r['id'] if r else None
 
 def select_snapshot(con, tour_choice, time_mode='final', minute=None):
-    # tour_choice: first, second, both. both is represented by cumulative second-tour table.
-    tour = 1 if tour_choice == 'first' else 2
+    tour = 2
+    if tour_choice == 'first':
+        tour = 1
     if time_mode == 'at':
         q = 'SELECT * FROM snapshots WHERE tour=? AND minute<=? ORDER BY minute DESC LIMIT 1'
         return con.execute(q, (tour, int(minute))).fetchone()
@@ -55,14 +56,18 @@ def filtered_result_rows(con, snapshot_id, mode, class_filter='all', region='all
     for r in con.execute('''SELECT p.*, r.* FROM results r JOIN participants p ON p.id=r.participant_id
                             WHERE r.snapshot_id=?''', (snapshot_id,)).fetchall():
         cls = r['class_num']
-        if class_filter == '11' and cls != 11: continue
-        if class_filter == '10' and cls != 10: continue
-        if class_filter == '9' and cls != 9: continue
-        if class_filter == '10_down' and cls > 10: continue
-        if class_filter == '9_down' and cls > 9: continue
-        if class_filter == '8_down' and cls > 8: continue
-        if region != 'all' and r['region'] != region: continue
-        if school != 'all' and (r['school'] or '') != school: continue
+        if(int(class_filter) != cls):
+            continue
+        if class_filter == '10_down' and cls > 10:
+            continue
+        if class_filter == '9_down' and cls > 9:
+            continue
+        if class_filter == '8_down' and cls > 8:
+            continue
+        if region != 'all' and r['region'] != region:
+            continue
+        if school != 'all' and (r['school'] or '') != school:
+            continue
         score = sum(r[f] or 0 for f in SCORE_FIELDS[mode])
         rows.append(dict(r, score=score))
     ranks = rank_ranges(rows, 'score')
@@ -92,7 +97,8 @@ def region_stats(criterion):
     con=get_connection(); d=diploma_map(con); sid=latest_snapshot_id(con,2)
     counter=Counter()
     for p in con.execute('''SELECT DISTINCT p.id, p.region FROM participants p JOIN results r ON r.participant_id=p.id WHERE r.snapshot_id=?''',(sid,)):
-        if criteria_value(d.get(p['id']), criterion): counter[p['region']] += 1
+        if criteria_value(d.get(p['id']), criterion):
+            counter[p['region']] += 1
     con.close(); return ranked_counts(counter)
 
 def school_stats(criterion):
@@ -101,36 +107,49 @@ def school_stats(criterion):
     for p in con.execute('''SELECT DISTINCT p.id, p.school, p.school_region FROM participants p JOIN results r ON r.participant_id=p.id
                             WHERE r.snapshot_id=? AND p.school IS NOT NULL AND p.school_region IN ('Москва','Санкт-Петербург')''',(sid,)):
         key=(p['school'],p['school_region']); regions[p['school']]=p['school_region']
-        if criteria_value(d.get(p['id']), criterion): counter[key] += 1
+        if criteria_value(d.get(p['id']), criterion):
+            counter[key] += 1
     items=sorted([(k,v) for k,v in counter.items() if v>0], key=lambda x:(-x[1], x[0][0], x[0][1]))
-    out=[]; i=0
+    out = []
+    i = 0
     while i < len(items):
-        v=items[i][1]; j=i
-        while j<len(items) and items[j][1]==v: j+=1
-        place=f'{i+1}-{j}' if i+1!=j else str(i+1)
-        for (school,reg),val in items[i:j]: out.append((place, school, reg, val))
-        i=j
-    con.close(); return out
+        v = items[i][1]
+        j = i
+        while j < len(items) and items[j][1] == v:
+            j+=1
+        place=f'{i+1}-{j}' if i + 1 != j else str(i+1)
+        for (school, reg), val in items[i:j]:
+            out.append((place, school, reg, val))
+        i = j
+    con.close()
+    return out
 
 def regions_with_min(n=3):
-    con=get_connection(); sid=latest_snapshot_id(con,2)
-    rows=con.execute('''SELECT p.region, COUNT(*) c FROM participants p JOIN results r ON r.participant_id=p.id
+    con = get_connection()
+    sid = latest_snapshot_id(con,2)
+    rows = con.execute('''SELECT p.region, COUNT(*) c FROM participants p JOIN results r ON r.participant_id=p.id
                         WHERE r.snapshot_id=? GROUP BY p.region HAVING c>=? ORDER BY p.region''',(sid,n)).fetchall()
-    con.close(); return [r['region'] for r in rows]
+    con.close()
+    return [r['region'] for r in rows]
 
 def schools_with_min(region=None, n=3):
-    con=get_connection(); sid=latest_snapshot_id(con,2)
-    params=[sid]; where="p.school IS NOT NULL AND p.school_region IN ('Москва','Санкт-Петербург')"
+    con = get_connection(); sid=latest_snapshot_id(con,2)
+    params = [sid]
+    where="p.school IS NOT NULL AND p.school_region IN ('Москва','Санкт-Петербург')"
     if region in ('Москва','Санкт-Петербург'):
-        where += ' AND p.school_region=?'; params.append(region)
+        where += ' AND p.school_region=?'
+        params.append(region)
     params.append(n)
     rows=con.execute(f'''SELECT p.school, p.school_region, COUNT(*) c FROM participants p JOIN results r ON r.participant_id=p.id
                          WHERE r.snapshot_id=? AND {where} GROUP BY p.school,p.school_region HAVING c>=? ORDER BY p.school''', params).fetchall()
     con.close(); return rows
 
 def participant_info(pid):
-    con=get_connection(); p=con.execute('SELECT * FROM participants WHERE id=?',(pid,)).fetchone()
-    if not p: con.close(); return None
+    con=get_connection()
+    p=con.execute('SELECT * FROM participants WHERE id=?',(pid,)).fetchone()
+    if not p: 
+        con.close()
+        return None
     first_sid=latest_snapshot_id(con,1); both_sid=latest_snapshot_id(con,2)
     r1=con.execute('SELECT * FROM results WHERE snapshot_id=? AND participant_id=?',(first_sid,pid)).fetchone() if first_sid else None
     r2=con.execute('SELECT * FROM results WHERE snapshot_id=? AND participant_id=?',(both_sid,pid)).fetchone() if both_sid else None
