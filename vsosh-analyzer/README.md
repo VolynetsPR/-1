@@ -21,7 +21,7 @@ python3 app.py
 1. Остановить приложение
 2. Удалить `data/olympiad.sqlite3`
 3. Запустить `python3 init_db.py`
-4. После создания БД можно удалить исходные HTML/CSV из `uploads/
+4. После создания БД можно удалить исходные HTML/CSV из `uploads/`
 5. Запустить `python3 app.py`
 
 ## На текущий момент
