@@ -7,15 +7,21 @@ UPLOADS = os.path.join(os.path.dirname(__file__), 'uploads')
 
 def recreate_database():
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
-    if os.path.exists(DB_PATH): os.remove(DB_PATH)
-    con = get_connection(); init_schema(con)
+    
+    if os.path.exists(DB_PATH):
+        os.remove(DB_PATH)
+
+    con = get_connection()
+    init_schema(con)
     return con
 
 def participant_id(con, row):
     con.execute('''INSERT OR IGNORE INTO participants(full_name, region, class_num)
                    VALUES(?,?,?)''', (row['full_name'], row['region'], row['class_num']))
+    
     con.execute('''UPDATE participants SET region=?, class_num=? WHERE full_name=?''',
                 (row['region'], row['class_num'], row['full_name']))
+    
     return con.execute('SELECT id FROM participants WHERE full_name=?', (row['full_name'],)).fetchone()['id']
 
 def load_html(con):
@@ -50,7 +56,10 @@ def copy_static():
 
 def main():
     con = recreate_database()
-    copy_static(); load_html(con); load_regional_csv(con)
+    copy_static()
+    load_html(con)
+    load_regional_csv(con)
+    
     con.close()
     print('База данных создана:', DB_PATH)
 
