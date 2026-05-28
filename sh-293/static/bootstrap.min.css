@@ -110,13 +110,13 @@ flex-basis:100%
 .btn:hover
 {
     text-decoration:none;
-    background:#537ba6
+    background:rgba(28, 139, 164, 0.569)
 }
 .btn-primary,.btn-danger
 {
     background:#2563eb;
     color:#fff;
-    border-color:#2563eb
+    border-color:#ffffff
 }
 .btn-danger
 {
