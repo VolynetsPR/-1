@@ -1,10 +1,10 @@
 from collections import Counter, defaultdict
 from db import get_connection
 
-DIPLOMA_INVITED = 383
-WINNERS_LIMIT = int(DIPLOMA_INVITED * 0.08)
-DIPLOMAS_LIMIT = int(DIPLOMA_INVITED * 0.45)
-MIN_DIPLOMA_SCORE = 400
+INVITED = 500
+WINNERS_LIMIT = 40
+DIPLOM_LIMIT = 225
+MIN_DIPLOM_SCORE = 400
 
 SCORE_FIELDS = {1: ['p1','p2','p3','p4'], 2: ['p5','p6','p7','p8'], 3: ['p1','p2','p3','p4','p5','p6','p7','p8']}
 PROBLEM_HEADERS = {1: ['1','2','3','4'], 2: ['5','6','7','8'], 3: ['1','2','3','4','5','6','7','8']}
@@ -46,9 +46,9 @@ def diploma_map(con):
                           WHERE r.snapshot_id=? ORDER BY score DESC, p.full_name''', (sid,)).fetchall()
     res = {}
     for idx, r in enumerate(rows, 1):
-        if r['score'] < MIN_DIPLOMA_SCORE: continue
+        if r['score'] < MIN_DIPLOM_SCORE: continue
         if idx <= WINNERS_LIMIT: res[r['id']] = 'winner'
-        elif idx <= DIPLOMAS_LIMIT: res[r['id']] = 'prize'
+        elif idx <= DIPLOM_LIMIT: res[r['id']] = 'prize'
     return res
 
 def filtered_result_rows(con, snapshot_id, mode, class_filter='all', region='all', school='all'):
